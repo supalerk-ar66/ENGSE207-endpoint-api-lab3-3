@@ -1,6 +1,6 @@
 var dbconfig = {
     development: {
-        server: '192.168.56.17',
+        server: '192.168.1.17',
         database:'team4_web_labDB',
         user:'sa',
         password:'PARNparn_212224236',
@@ -11,11 +11,11 @@ var dbconfig = {
             enableArithAbort: true,
             trustServerCertificate: true,
             trustedconnection:  true,
-            instancename:  '192.168.56.17'  // SQL Server instance name
+            instancename:  '192.168.1.17'  // SQL Server instance name
         }
     },
     production: {
-        server: '192.168.56.17',
+        server: '192.168.1.17',
         database:'team4_web_labDB',
         user:'sa',
         password:'PARNparn_212224236',
@@ -26,7 +26,7 @@ var dbconfig = {
             enableArithAbort: true,
             trustServerCertificate: true,
             trustedconnection:  true,
-            instancename:  '192.168.56.17'  // SQL Server instance name
+            instancename:  '192.168.1.17'  // SQL Server instance name
         }
     },
 
