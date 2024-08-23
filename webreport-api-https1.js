@@ -140,6 +140,40 @@ const init = async () => {
 
     });
 
+    /////////////
+   const handleWebSocketMessage = (ToAgentCode, FromAgentCode, Message) => {
+   if (clientWebSockets[ToAgentCode]) {
+    try {
+      clientWebSockets[ToAgentCode].send(JSON.stringify({
+        MessageType: '5',
+        FromAgentCode: FromAgentCode,
+        ToAgentCode: ToAgentCode,
+        DateTime: new Date().toLocaleString('en-US'),
+        Message: Message,
+      }));
+
+            return {
+             error: false,
+            statusCode: 200,
+             message: "Message has been set from " + FromAgentCode + " to " + ToAgentCode,
+            };
+         } catch (error) {
+            console.error('Error sending WebSocket message:', error);
+             return {
+                error: true,
+                statusCode: 500,
+                errMessage: 'Error sending WebSocket message',
+            };
+        }
+        } else {
+            return {
+            error: true,
+            statusCode: 404,
+            errMessage: "Agent not found, cannot send message to agent.",
+         };
+        }
+    };
+    
     await server.register(require('@hapi/inert'));
 
     await server.register(AuthBearer);
@@ -341,7 +375,45 @@ const init = async () => {
 
     });
 
-
+    server.route({
+        method: 'POST',
+        path: '/api/v1/postSendMessage',
+        config: {
+            cors: {
+                origin: ['*'],
+                headers: ["Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Accept", "Authorization", "Content-Type", "If-None-Match", "Accept-language"],
+                additionalHeaders: ["Access-Control-Allow-Headers: Origin, Content-Type, x-ms-request-id , Authorization"],
+                credentials: true
+            },
+            payload: {
+                parse: true,
+                allow: ['application/json', 'multipart/form-data'],
+                multipart: true
+            }
+        },
+        handler: async (request, h) => {
+            console.log('Received payload:', request.payload);
+            
+            const { FromAgentCode, ToAgentCode, Message } = request.payload;
+            const normalizedToAgentCode = ToAgentCode;
+        
+            if (!FromAgentCode || !normalizedToAgentCode || !Message) {
+                console.error('Missing required fields:', { FromAgentCode, normalizedToAgentCode, Message });
+                return h.response({ error: true, statusCode: 400, errMessage: 'Missing required fields.' }).code(400);
+            }
+        
+            const result = handleWebSocketMessage(normalizedToAgentCode, FromAgentCode, Message);
+        
+            if (result.error) {
+                console.error('Error in WebSocket handling:', result);
+            } else {
+                console.log('WebSocket message sent successfully:', result);
+            }
+        
+            return h.response(result).code(result.statusCode);
+        }    
+    });
+    
     await server.start();
     console.log('Webreport API Server running on %s', server.info.uri);
 };
